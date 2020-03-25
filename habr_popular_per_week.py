@@ -42,20 +42,20 @@ class Post(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     post_title = Column(String, unique=False, nullable=False)
     post_url = Column(String, unique=True, nullable=False)
-    # autor_id = Column(Integer, ForeignKey('autor.id'))
-    # autor = relationship('Autor', back_populates='post')
+    autor_id = Column(Integer, ForeignKey('autor.id'))
+    autor = relationship('Autor', back_populates='post')
 
-    def __init__(self, title, url):
+    def __init__(self, title, url, autor):
         self.post_title = title
         self.post_url = url
-        # self.autor = autor
+        self.autor = autor
 
 class Autor(Base):
     __tablename__ = 'autor'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    post_title = Column(String, unique=False, nullable=False)
-    post_url = Column(String, unique=True, nullable=False)
-    # post = relationship('Post', back_populates='autor')
+    name = Column(String, unique=False, nullable=False)
+    url = Column(String, unique=True, nullable=False)
+    post = relationship('Post', back_populates='autor')
 
     def __init__(self, name, url):
         self.name = name
@@ -96,10 +96,10 @@ def get_article_items():
             print(f'post_autor: {post_autor_name} and his url: {post_autor_url}')
             comments_autors = post_soup.find('ul',{'id':'comments-list'}).find_all('a',{'class':'user-info user-info_inline'})
             print(f'comments_count: {post_comments_count}')
-            # autor = Autor(post_autor_name,post_autor_url)
-            # post = Post(post_title, post_url, autor)
-            # session.add(post)
-            # session.commit()
+            autor = Autor(post_autor_name,post_autor_url)
+            post = Post(post_title, post_url, autor)
+            session.add(post)
+            session.commit()
             for comment_autor in comments_autors:
                 print(1)
                 comment_autor_name = comment_autor['data-user-login']
@@ -107,7 +107,8 @@ def get_article_items():
                 print(f'comment_autor_name: {comment_autor_name} and his url: {comment_autor_url}')
 
 if __name__ == '__main__':
-    engine = create_engine('mssql://mysql_user:xHs56XcgEvZQBSgw@192.168.88.253/habr_popular_per_week')
+    # 'mysql + mysqlconnector: // < user >: < password >@< host > [: < port >] / < dbname >'
+    engine = create_engine('mysql+mysqlconnector://root :xHs56XcgEvZQBSgw@db_server/habr_popular_per_week')
     Base.metadata.create_all(engine)
     session_db = sessionmaker(bind=engine)
     session = session_db()
